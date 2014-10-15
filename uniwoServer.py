@@ -11,6 +11,7 @@ import gzip
 import urllib2
 import time
 import ssl
+import base64,hashlib
 
 import sys 
 from tornado.options import define, options
@@ -116,44 +117,66 @@ application = tornado.web.Application([
 )
 
 paramEx={
-        "outTradeNo":"8938057637279851",
-         "timeStamp":"20130128023312",
-         "subject": "捕鱼达人金币",
-         "description": "捕鱼达人金币购买",
-         "price": 5,
-         "quantity": 1,
-         "totalFee": 5,
+        "outTradeNo":"004",
+         "timeStamp":"20140128023312",
+         "subject": "itemid",
+         "description": 0.01,
          "callbackUrl": "http://10.137.99.100/getPaymentResult",
-         "callbackData":"QAZWSXEDC",
          "appKey":"000000001",
-         "appName":"捕鱼达人",
-         "iapId": "",
-         "imsi": "460030912121001",
-         "imei": "860275020104961",
-         "signType":"HMAC-SHA1",
+         "appName":"appname",         
+         
          "signature":"KEISDADADDDDA73NC6HN23D6GJ78K1J3N5N423F5G78"
          }
 
 if __name__ == "__main__": 
+    url= "https://open.wo.com.cn/openapi/getchannelpaymentsms/v1.0"
+    send_headers = {
+     'Authorization':'platformID=\"b692bc21-5bb0-4904-a95e-2ab44828b03e\",password=\"yllk2014\"',
+     'Accept':'application/json;charset=UTF-8',
+     'Content-Type':'application/json'
+    }
+    a={"signType":"HMAC-SHA1"}
+    parastr=paramEx['outTradeNo']
+    parastr+=paramEx["timeStamp"]
+    parastr+=paramEx["subject"]
+    parastr+=str(paramEx["description"])
+    parastr+=paramEx["callbackUrl"]
+    parastr+=paramEx["appKey"]
+    parastr+=paramEx["appName"]
     
+    
+    parastr+="b692bc21-5bb0-4904-a95e-2ab44828b03e&"
+    parastr+="yllk2014"
+    
+    sha1obj = hashlib.sha1()
+    sha1obj.update(parastr)
+    hash = sha1obj.hexdigest()
+    signature=base64.encodestring(hash)
+    print signature
+    paramEx["signature"]=signature
+    print json.dumps(paramEx)
+    req = urllib2.Request(url,data=json.dumps(paramEx),headers=send_headers)
+    print req.header_items()
+    r = urllib2.urlopen(req)
     #tornado.options.parse_command_line()
     
-    mySender=NetSender()
+    #mySender=NetSender()
     
     #mySender.addParams(paramEx)
     
     #mySender.encodeJson()
     
-    mySender.getRequest()
+    #mySender.getRequest()
     
-    #mySender.setHeader("Authorization", "platformID=\"88149731e0ed75daa03a6e1e30427cddfa4ch3ci\",password=\"keisda73nc6hn234k5kj6j78k1j34n5n4n6n7l9f\"")
-    #mySender.setHeader("Accept", "application/json")    
+    #mySender.setHeader("Authorization", "platformID=\"b692bc21-5bb0-4904-a95e-2ab44828b03e\",password=\"yllk2014\"")
+    #mySender.setHeader("Accept", "application/json;charset=UTF-8")    
     #mySender.setHeader("Content-Type", "application/json")
     
-    print mySender.request.header_items()
+    #print mySender.request.header_items()
     
     
-    print mySender.send()
+    #print mySender.send()
+    print r.read()
     #print (sys.argv[0])
     
     #print("sys default encoding: " + sys.getdefaultencoding())
